@@ -1,7 +1,7 @@
 mod engine;
 mod api;
 
-use axum::{Router, http::Request, routing::get};
+use axum::{Router, routing::get};
 use tokio::net::TcpListener;
 
 #[tokio::main]
