@@ -10,6 +10,7 @@ pub struct RateLimiter {
     pub rate: u64,   // number of requests per window
     pub window: u64, // window duration (in seconds)
     cache: DashMap<String, Vec<DateTime<Utc>>>,
+    _cache: HashMap<String, String>
 }
 
 impl RateLimiter {
@@ -18,6 +19,7 @@ impl RateLimiter {
             rate,   // number of requests per window
             window, // window duration
             cache: DashMap::new(),
+            _cache: HashMap::new()
         }
     }
 
