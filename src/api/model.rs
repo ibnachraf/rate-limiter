@@ -1,7 +1,10 @@
+use axum::body::Body;
+use axum::response::Response;
 use reqwest::Method;
 use std::collections::HashMap;
 use std::fmt;
 
+#[derive(Debug)]
 pub enum Verb {
     GET,
     PATCH,
@@ -37,10 +40,16 @@ impl fmt::Display for AppError {
     }
 }
 
+pub enum CallError {
+    Authorization(AuthorizationError),
+    Technical(TechnicalError),
+    Downstream(DownstreamError)
+} 
+
 #[derive(Debug)]
 pub enum AuthorizationError {
     TooManyQueries,
-    IpHeaderMissing,
+    IpHeaderMissing
 }
 
 #[derive(Debug)]
@@ -48,12 +57,20 @@ pub enum TechnicalError {
     NotSupportedMethod,
 }
 
+pub enum DownstreamError {
+    DownstreamError {
+        response: Response<Body>,
+    },
+}
+
+
+
 pub enum QueryIp {
     Ip(Vec<u8>),
     Unknown,
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum QueryParams {
     Ip,
 }
@@ -66,6 +83,7 @@ impl QueryParams {
     }
 }
 
+#[derive(Debug)]
 pub struct UserQuery {
     pub header: HashMap<QueryParams, Vec<u8>>,
     pub verb: Verb,

@@ -8,7 +8,7 @@ chrono="0.4"
 tokio={ version = "1", features = ["full"] }
 futures="0.3.5"
 dashmap="6.1.0"
-axum = "0.8.6"
+axum = { version = "0.8.6", features = ["macros"] }
 serde = "1.0.228"
 reqwest = { version = "0.12", features = ["json"] }
 http-body = "1.0.1"

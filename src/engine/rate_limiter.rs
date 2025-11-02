@@ -6,10 +6,11 @@ use std::time::Duration;
 use std::{collections::HashMap, thread};
 use tokio::task::JoinHandle;
 
+#[derive(Clone)]
 pub struct RateLimiter {
     pub rate: u64,   // number of requests per window
-    pub window: u64, // window duration (in seconds)
-    cache: DashMap<String, Vec<DateTime<Utc>>>,
+    pub window: u64, // window duration (in seconds), TODO: make it chrono::Duration
+    cache: DashMap<String, Vec<DateTime<Utc>>>, // TODO: the vec is not safe for high concurrency
     _cache: HashMap<String, String>
 }
 

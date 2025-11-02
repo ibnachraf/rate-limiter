@@ -1,36 +1,50 @@
-use crate::api::model::{AuthorizationError, QueryIp, QueryParams, UserQuery, Verb};
+use crate::api::model::{
+    AuthorizationError, CallError, DownstreamError, QueryIp, QueryParams, UserQuery, Verb,
+};
 use crate::api::proxy::Proxy;
 use crate::engine::rate_limiter::RateLimiter;
+use axum::body::Body;
 use axum::http::request::Parts;
-use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, Request, Uri};
+use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, Request, Response, Uri};
 use reqwest::Client;
 use std::collections::HashMap;
 
-struct HttpProxy {
-    rate_limiter: RateLimiter,
-    client: reqwest::Client,
+#[derive(Clone)]
+pub struct HttpProxy {
+    pub rate_limiter: RateLimiter,
+    pub client: reqwest::Client,
+    pub original_url: String,
 }
 
-impl<T> Proxy<&Request<T>> for HttpProxy {
-    async fn proxy_handler(&self, req: &Request<T>) -> Result<(), AuthorizationError> {
-        let user_query: UserQuery = self.map(req);
-        match self.check_user_authorization(&user_query) {
-            Ok(_) => (),
-            Err(err) => return Err(err),
-        };
+impl<T> Proxy<Request<T>> for HttpProxy {
+    async fn proxy_handler(&self, req: Request<T>) -> Result<(), CallError> {
+        let user_query: UserQuery = self.map(&req);
+        println!("User query: {:?}", user_query);
+
+        if self.check_user_authorization(&user_query).is_err() {
+            println!("Authorization error");
+            return Err(CallError::Authorization(AuthorizationError::TooManyQueries));
+        }
 
         let proxy_reqwest = self
             .client
-            .request(user_query.verb.to_method(), &user_query.uri)
+            .request(user_query.verb.to_method(), &self.original_url)
             //must manage the body here
             .headers(self.into_header_map(&user_query))
             .build();
-
+        // TODO: fix the request building, why use client?
         let request = proxy_reqwest.expect("Oups! building request failed");
 
-        self.client.execute(request).await;
-
-        Ok(())
+        let proxy_res = self.client.execute(request).await;
+        match proxy_res {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                println!("Downstream error: {:?}", err);
+                Err(CallError::Downstream(DownstreamError::DownstreamError {
+                    response: Response::new(Body::from(format!("Downstream error: {}", err))),
+                }))
+            }
+        }
     }
 }
 
@@ -126,6 +140,7 @@ mod tests {
         let http_proxy = HttpProxy {
             rate_limiter,
             client,
+            original_url: "https://www.google.com".to_string(),
         };
 
         let body_json = "{\"key\": \"value\"}".to_string();
@@ -137,8 +152,8 @@ mod tests {
             .body(body)
             .unwrap();
 
-        assert!(http_proxy.proxy_handler(&request).await.is_ok());
-        assert!(http_proxy.proxy_handler(&request).await.is_ok());
-        assert!(http_proxy.proxy_handler(&request).await.is_err());
+        assert!(http_proxy.proxy_handler(request).await.is_ok());
+        assert!(http_proxy.proxy_handler(request).await.is_ok());
+        assert!(http_proxy.proxy_handler(request).await.is_err());
     }
 }
