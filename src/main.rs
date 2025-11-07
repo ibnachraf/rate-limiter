@@ -87,7 +87,6 @@ async fn handler(State(app_state): State<AppState>, req: Request<Body>) -> Respo
             }
         }
     };
-
     Response::new(Body::from("Proxied response"))
 }
 

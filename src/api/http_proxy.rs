@@ -143,17 +143,35 @@ mod tests {
             original_url: "https://www.google.com".to_string(),
         };
 
+        assert!(
+            http_proxy
+                .proxy_handler(generate_request(create_body()))
+                .await
+                .is_ok()
+        );
+        assert!(
+            http_proxy
+                .proxy_handler(generate_request(create_body()))
+                .await
+                .is_ok()
+        );
+        assert!(
+            http_proxy
+                .proxy_handler(generate_request(create_body()))
+                .await
+                .is_err()
+        );
+    }
+
+    fn create_body() -> Body {
         let body_json = "{\"key\": \"value\"}".to_string();
-
-        let body = Body::new(body_json);
-
-        let request: Request<Body> = Request::get("https://www.google.com")
+        Body::new(body_json)
+    }
+    
+    fn generate_request(body: Body) -> Request<Body> {
+        Request::get("https://www.google.com")
             .header("x-forwarded-for", "1.0.0.0")
             .body(body)
-            .unwrap();
-
-        assert!(http_proxy.proxy_handler(request).await.is_ok());
-        assert!(http_proxy.proxy_handler(request).await.is_ok());
-        assert!(http_proxy.proxy_handler(request).await.is_err());
+            .unwrap()
     }
 }
