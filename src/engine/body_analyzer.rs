@@ -51,8 +51,10 @@ impl BodyAnalyzer {
         //       2 - take all the body parts/fields create a structure automatically and test against it
     }
 
+    // Use openAPI templates to analyze body
+    // use the generated model, map it to the routes and check if the body matches the model
+    // use yaml_serde to parse openAPI files
     fn synchronize_body() -> () {
-        // the backend calls the software and gets a key
-        // using an algorithm 
+        
     }
 }

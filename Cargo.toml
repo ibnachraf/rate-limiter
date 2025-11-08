@@ -12,3 +12,7 @@ axum = { version = "0.8.6", features = ["macros"] }
 serde = "1.0.228"
 reqwest = { version = "0.12", features = ["json"] }
 http-body = "1.0.1"
+[build-dependencies]
+openapi-model-generator = "0.3.1"
+serde_yaml= "0.9.34"
+openapiv3 = "2.0"
