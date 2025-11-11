@@ -3,8 +3,9 @@ use axum::response::Response;
 use reqwest::Method;
 use std::collections::HashMap;
 use std::fmt;
+use strum_macros::AsRefStr;
 
-#[derive(Debug)]
+#[derive(Debug, AsRefStr)]
 pub enum Verb {
     GET,
     PATCH,
@@ -14,6 +15,16 @@ pub enum Verb {
 }
 
 impl Verb {
+
+    pub fn to_lowercase(&self) -> String {
+        match self {
+            Verb::GET => "get".to_string(),
+            Verb::PATCH => "patch".to_string(),
+            Verb::POST => "post".to_string(),
+            Verb::PUT => "put".to_string(),
+            Verb::DELETE => "delete".to_string(),
+        }
+    }
     pub fn to_method(&self) -> Method {
         match self {
             Verb::GET => Method::GET,

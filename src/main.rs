@@ -1,5 +1,6 @@
 mod api;
 mod engine;
+mod generated;
 
 use std::sync::Arc;
 
